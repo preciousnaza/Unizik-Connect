@@ -1,11 +1,22 @@
-import { Tabs } from 'expo-router';
+import { Tabs, router } from 'expo-router';
 import { Colors } from '@/constants/theme';
 import { Home, Building2, Calendar, MessageCircle, User } from 'lucide-react-native';
+import { useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Bottom tab navigation — the app's primary navigation structure.
 // Each tab maps to a screen file in app/(tabs)/.
 
 export default function TabLayout() {
+  const { loading, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    // If not authenticated and not loading, redirect to login.
+    if (!loading && !isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [loading, isAuthenticated]);
+
   return (
     <Tabs
       screenOptions={{

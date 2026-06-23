@@ -3,6 +3,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Radius, Spacing, Typography, CardShadow } from '@/constants/theme';
 import { offices } from '@/data/mockData';
+import { useAuth } from '@/contexts/AuthContext';
 import { StatusBadge } from '@/components/StatusBadge';
 import { CustomButton } from '@/components/CustomButton';
 import * as LucideIcons from 'lucide-react-native';
@@ -25,6 +26,14 @@ export default function OfficeDetailsScreen() {
   // The office id comes from the route params (e.g. /office/registry).
   const { id } = useLocalSearchParams<{ id: string }>();
   const office = offices.find((o) => o.id === id);
+
+  const { user, loading } = useAuth();
+
+  // Protect this screen — redirect to login when unauthenticated
+  if (!loading && !user) {
+    router.replace('/login');
+    return null;
+  }
 
   if (!office) {
     return (

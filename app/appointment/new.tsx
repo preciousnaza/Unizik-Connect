@@ -12,7 +12,8 @@ import {
 import { useLocalSearchParams, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Radius, Spacing, Typography, CardShadow } from '@/constants/theme';
-import { offices, timeSlots, studentProfile } from '@/data/mockData';
+import { offices, timeSlots } from '@/data/mockData';
+import { useAuth } from '@/contexts/AuthContext';
 import { CustomButton } from '@/components/CustomButton';
 import { ChevronLeft, CheckCircle2, Calendar, Clock, X } from 'lucide-react-native';
 
@@ -23,9 +24,10 @@ import { ChevronLeft, CheckCircle2, Calendar, Clock, X } from 'lucide-react-nati
 export default function NewAppointmentScreen() {
   // If navigated from an office detail page, the office name is pre-filled.
   const { office: preselectedOffice } = useLocalSearchParams<{ office?: string }>();
+  const { user, loading } = useAuth();
 
-  const [fullName, setFullName] = useState(studentProfile.name);
-  const [email, setEmail] = useState(studentProfile.email);
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
   const [officeName, setOfficeName] = useState(preselectedOffice || '');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
@@ -55,6 +57,20 @@ export default function NewAppointmentScreen() {
     setShowSuccess(true);
   };
 
+  // Protect this screen — require authentication
+  if (!loading && !user) {
+    router.replace('/login');
+    return null;
+  }
+
+  // Populate from session user when available
+  React.useEffect(() => {
+    if (user) {
+      setFullName(user.name || '');
+      setEmail(user.email || '');
+    }
+  }, [user]);
+
   const handleDone = () => {
     setShowSuccess(false);
     // Go back to the appointments tab so the student sees their list.
@@ -73,30 +89,19 @@ export default function NewAppointmentScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* Full Name */}
+        {/* Student (auto-filled) */}
         <View style={styles.field}>
-          <Text style={styles.label}>Full Name</Text>
-          <TextInput
-            style={styles.input}
-            value={fullName}
-            onChangeText={setFullName}
-            placeholder="Enter your full name"
-            placeholderTextColor={Colors.textMuted}
-          />
+          <Text style={styles.label}>Student</Text>
+          <View style={[styles.input, { justifyContent: 'center' }]}> 
+            <Text style={{ color: Colors.text }}>{fullName}</Text>
+          </View>
         </View>
 
-        {/* Email */}
         <View style={styles.field}>
           <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="Enter your email"
-            placeholderTextColor={Colors.textMuted}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
+          <View style={[styles.input, { justifyContent: 'center' }]}> 
+            <Text style={{ color: Colors.text }}>{email}</Text>
+          </View>
         </View>
 
         {/* Office picker */}

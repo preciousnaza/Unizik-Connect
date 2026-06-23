@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { offices } from '@/data/mockData';
 import { OfficeCard } from '@/components/OfficeCard';
+import UnizikLogo from '@/components/UnizikLogo';
 import { Search, SlidersHorizontal } from 'lucide-react-native';
 import { OfficeStatus } from '@/types';
 
@@ -39,6 +40,9 @@ export default function OfficesScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>Offices</Text>
         <Text style={styles.subtitle}>Find university offices and services</Text>
+        <View style={styles.headerLogo} pointerEvents="none">
+          <UnizikLogo size="small" width={36} />
+        </View>
       </View>
 
       {/* Search bar */}
@@ -120,6 +124,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textMuted,
     marginTop: 4,
+  },
+  headerLogo: {
+    position: 'absolute',
+    right: Spacing.lg,
+    top: Spacing.lg,
+    opacity: 0.95,
   },
   searchWrap: {
     paddingHorizontal: Spacing.lg,

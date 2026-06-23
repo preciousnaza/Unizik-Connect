@@ -1,10 +1,12 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { useState } from 'react';
+import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Radius, Spacing, Typography, CardShadow } from '@/constants/theme';
-import { studentProfile } from '@/data/mockData';
+import { useAuth } from '@/contexts/AuthContext';
 import { useAppointments } from '@/hooks/useAppointments';
 import { Avatar } from '@/components/Avatar';
+import UnizikLogo from '@/components/UnizikLogo';
 import { InfoCard } from '@/components/InfoCard';
 import {
   Calendar,
@@ -19,6 +21,7 @@ import {
   X,
   Shield,
   Heart,
+  LogOut,
 } from 'lucide-react-native';
 
 // Profile screen — shows mock student info, stats, and action buttons.
@@ -28,17 +31,22 @@ export default function ProfileScreen() {
   const { appointments } = useAppointments();
   const [showAbout, setShowAbout] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const { user, logout } = useAuth();
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        <View style={{ alignItems: 'center', marginTop: Spacing.lg }}>
+          <UnizikLogo size="medium" width={96} />
+        </View>
+
         {/* Header card with avatar and student info */}
         <View style={styles.headerCard}>
           <View style={styles.headerTop}>
-            <Avatar initials={studentProfile.avatar} size={72} />
+            <Avatar initials={(user?.name || 'S').split(' ').map(n=>n[0]).join('').slice(0,2)} size={72} />
             <View style={styles.headerInfo}>
-              <Text style={styles.studentName}>{studentProfile.name}</Text>
-              <Text style={styles.studentMatric}>{studentProfile.matricNumber}</Text>
+              <Text style={styles.studentName}>{user?.name ?? 'Student'}</Text>
+              <Text style={styles.studentMatric}>{user?.matricNumber ?? ''}</Text>
             </View>
           </View>
         </View>
@@ -55,13 +63,13 @@ export default function ProfileScreen() {
           <InfoCard
             icon={<GraduationCap size={20} color={Colors.primary} strokeWidth={2} />}
             title="Faculty"
-            value="Engineering"
+            value={user?.faculty ?? '-'}
           />
           <View style={{ width: Spacing.md }} />
           <InfoCard
             icon={<Layers size={20} color={Colors.primary} strokeWidth={2} />}
             title="Level"
-            value="300L"
+            value={user?.level ?? '-'}
           />
         </View>
 
@@ -72,27 +80,27 @@ export default function ProfileScreen() {
             <DetailRow
               icon={<IdCard size={18} color={Colors.primary} strokeWidth={2} />}
               label="Matric Number"
-              value={studentProfile.matricNumber}
+              value={user?.matricNumber ?? ''}
             />
             <DetailRow
               icon={<Building2 size={18} color={Colors.primary} strokeWidth={2} />}
               label="Faculty"
-              value={studentProfile.faculty}
+              value={user?.faculty ?? ''}
             />
             <DetailRow
               icon={<GraduationCap size={18} color={Colors.primary} strokeWidth={2} />}
               label="Department"
-              value={studentProfile.department}
+              value={user?.department ?? ''}
             />
             <DetailRow
               icon={<Layers size={18} color={Colors.primary} strokeWidth={2} />}
               label="Level"
-              value={studentProfile.level}
+              value={user?.level ?? ''}
             />
             <DetailRow
               icon={<Mail size={18} color={Colors.primary} strokeWidth={2} />}
               label="Email"
-              value={studentProfile.email}
+              value={user?.email ?? ''}
               last
             />
           </View>
@@ -116,6 +124,14 @@ export default function ProfileScreen() {
               icon={<HelpCircle size={18} color={Colors.primary} strokeWidth={2} />}
               label="Help & Support"
               onPress={() => setShowHelp(true)}
+            />
+            <ActionRow
+              icon={<LogOut size={18} color={Colors.primary} strokeWidth={2} />}
+              label="Logout"
+              onPress={async () => {
+                await logout();
+                router.replace('/login');
+              }}
               last
             />
           </View>

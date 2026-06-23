@@ -2,16 +2,18 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-nati
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Radius, Spacing, Typography, CardShadow } from '@/constants/theme';
-import { offices, studentProfile, sampleAppointment } from '@/data/mockData';
+import { offices, sampleAppointment } from '@/data/mockData';
+import { useAuth } from '@/contexts/AuthContext';
 import { SectionHeader } from '@/components/SectionHeader';
 import { StatusBadge } from '@/components/StatusBadge';
-import { Avatar } from '@/components/Avatar';
+import UnizikLogo from '@/components/UnizikLogo';
 import { Building2, CalendarPlus, MessageCircle, User, Calendar, Clock, ChevronRight, Bell } from 'lucide-react-native';
 
 // Home screen — the dashboard. Shows a welcome header, quick action grid,
 // office status overview, and the upcoming appointment card.
 
 export default function HomeScreen() {
+  const { user } = useAuth();
   // Quick actions navigate to other tabs or the appointment form.
   const quickActions = [
     { label: 'Offices', icon: Building2, route: '/(tabs)/offices' as const },
@@ -29,16 +31,16 @@ export default function HomeScreen() {
         {/* Header with gradient background */}
         <View style={styles.header}>
           <View style={styles.headerTop}>
-            <View>
-              <Text style={styles.greeting}>Welcome back,</Text>
-              <Text style={styles.studentName}>{studentProfile.name.split(' ')[0]}</Text>
-            </View>
+              <View>
+                <Text style={styles.greeting}>Welcome back,</Text>
+                <Text style={styles.studentName}>{user ? user.name.split(' ')[0] : 'Student'}</Text>
+              </View>
             <View style={styles.headerRight}>
               <TouchableOpacity style={styles.bellWrap}>
                 <Bell size={20} color={Colors.white} strokeWidth={2} />
                 <View style={styles.bellDot} />
               </TouchableOpacity>
-              <Avatar initials={studentProfile.avatar} size={44} />
+              <UnizikLogo size="small" width={40} />
             </View>
           </View>
           <Text style={styles.headerSubtitle}>Connecting Students to Campus Services</Text>
