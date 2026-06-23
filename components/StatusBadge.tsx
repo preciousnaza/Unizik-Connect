@@ -1,34 +1,45 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { COLORS } from '../constants/colors';
-import { OfficeStatus } from '../types';
+import { StyleSheet, Text, View } from 'react-native';
+import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { OfficeStatus } from '@/types';
 
-interface StatusBadgeProps {
-  status: OfficeStatus;
-  size?: 'small' | 'medium';
-}
+// StatusBadge renders a colored pill showing an office's availability.
+// The color and label come from the status prop.
 
-const STATUS_COLORS: Record<OfficeStatus, string> = {
-  Open: COLORS.statusOpen,
-  Busy: COLORS.statusBusy,
-  Closed: COLORS.statusClosed,
+const STATUS_CONFIG: Record<
+  OfficeStatus,
+  { label: string; color: string; tint: string }
+> = {
+  open: { label: 'Open', color: Colors.open, tint: Colors.openTint },
+  busy: { label: 'Busy', color: Colors.busy, tint: Colors.busyTint },
+  closed: { label: 'Closed', color: Colors.closed, tint: Colors.closedTint },
 };
 
-export default function StatusBadge({ status, size = 'medium' }: StatusBadgeProps) {
-  const color = STATUS_COLORS[status];
-  const isSmall = size === 'small';
+type Props = {
+  status: OfficeStatus;
+  size?: 'sm' | 'md';
+};
+
+export function StatusBadge({ status, size = 'md' }: Props) {
+  const config = STATUS_CONFIG[status];
+  const isSmall = size === 'sm';
 
   return (
     <View
       style={[
         styles.badge,
-        { backgroundColor: `${color}1A` },
+        { backgroundColor: config.tint },
         isSmall && styles.badgeSmall,
       ]}
     >
-      <View style={[styles.dot, { backgroundColor: color }]} />
-      <Text style={[styles.text, { color }, isSmall && styles.textSmall]}>
-        {status}
+      <View style={[styles.dot, { backgroundColor: config.color }]} />
+      <Text
+        style={[
+          styles.label,
+          { color: config.color },
+          isSmall && styles.labelSmall,
+        ]}
+      >
+        {config.label}
       </Text>
     </View>
   );
@@ -38,26 +49,25 @@ const styles = StyleSheet.create({
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    alignSelf: 'flex-start',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.pill,
+    gap: Spacing.xs,
   },
   badgeSmall: {
     paddingVertical: 4,
-    paddingHorizontal: 8,
+    paddingHorizontal: Spacing.sm,
   },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    marginRight: 6,
   },
-  text: {
+  label: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: Typography.bold,
   },
-  textSmall: {
+  labelSmall: {
     fontSize: 11,
   },
 });

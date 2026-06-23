@@ -1,63 +1,78 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../constants/colors';
+import { StyleSheet, Text, View } from 'react-native';
+import { ReactNode } from 'react';
+import { Colors, Radius, Spacing, Typography, CardShadow } from '@/constants/theme';
 
-interface InfoCardProps {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
+// InfoCard is a generic card with an icon, title, and value.
+// Used on the Home dashboard and Profile screen for quick stats.
+
+type Props = {
+  icon: ReactNode;
+  title: string;
   value: string;
-}
+  accent?: boolean;
+};
 
-export default function InfoCard({ icon, label, value }: InfoCardProps) {
+export function InfoCard({ icon, title, value, accent = false }: Props) {
   return (
-    <View style={styles.card}>
-      <View style={styles.iconWrap}>
-        <Ionicons name={icon} size={20} color={COLORS.primaryBlue} />
+    <View
+      style={[
+        styles.card,
+        accent && styles.cardAccent,
+        ...(!accent ? [CardShadow] : []),
+      ]}
+    >
+      <View style={[styles.iconWrap, accent && styles.iconWrapAccent]}>
+        {icon}
       </View>
-      <View style={styles.content}>
-        <Text style={styles.label}>{label}</Text>
-        <Text style={styles.value}>{value}</Text>
-      </View>
+      <Text style={[styles.title, accent && styles.titleAccent]}>{title}</Text>
+      <Text
+        style={[styles.value, accent && styles.valueAccent]}
+        numberOfLines={1}
+      >
+        {value}
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: COLORS.white,
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    flex: 1,
+    backgroundColor: Colors.white,
+    borderRadius: Radius.lg,
+    padding: Spacing.md,
+    minHeight: 110,
+  },
+  cardAccent: {
+    backgroundColor: Colors.primary,
   },
   iconWrap: {
     width: 40,
     height: 40,
-    borderRadius: 12,
-    backgroundColor: `${COLORS.primaryBlue}12`,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
+    marginBottom: Spacing.sm,
   },
-  content: {
-    flex: 1,
+  iconWrapAccent: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
   },
-  label: {
+  title: {
     fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.textLight,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    color: Colors.textMuted,
+    fontWeight: Typography.medium,
     marginBottom: 4,
   },
+  titleAccent: {
+    color: 'rgba(255,255,255,0.8)',
+  },
   value: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.text,
-    lineHeight: 21,
+    fontSize: 18,
+    fontWeight: Typography.bold,
+    color: Colors.text,
+  },
+  valueAccent: {
+    color: Colors.white,
   },
 });

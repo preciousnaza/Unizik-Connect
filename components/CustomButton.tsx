@@ -1,63 +1,58 @@
-import React from 'react';
-import {
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-  ActivityIndicator,
-  ViewStyle,
-} from 'react-native';
-import { COLORS } from '../constants/colors';
+import { StyleSheet, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 
-interface CustomButtonProps {
+// CustomButton is the app's primary action button.
+// Variants: 'primary' (blue), 'gold' (accent), 'outline', 'ghost'.
+// Supports a loading state and optional left icon node.
+
+type Variant = 'primary' | 'gold' | 'outline' | 'ghost';
+
+type Props = {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'outline' | 'gold';
+  variant?: Variant;
   loading?: boolean;
   disabled?: boolean;
-  style?: ViewStyle;
   icon?: React.ReactNode;
-}
+  fullWidth?: boolean;
+};
 
-export default function CustomButton({
+export function CustomButton({
   title,
   onPress,
   variant = 'primary',
   loading = false,
   disabled = false,
-  style,
   icon,
-}: CustomButtonProps) {
-  const isPrimary = variant === 'primary';
+  fullWidth = true,
+}: Props) {
+  const isOutline = variant === 'outline';
+  const isGhost = variant === 'ghost';
   const isGold = variant === 'gold';
 
-  const backgroundColor = isPrimary
-    ? COLORS.primaryBlue
+  const backgroundColor = isOutline || isGhost
+    ? 'transparent'
     : isGold
-    ? COLORS.accentGold
-    : 'transparent';
+      ? Colors.accent
+      : Colors.primary;
 
-  const borderColor = isPrimary
-    ? COLORS.primaryBlue
-    : isGold
-    ? COLORS.accentGold
-    : COLORS.primaryBlue;
-
-  const textColor = isPrimary ? COLORS.white : isGold ? COLORS.text : COLORS.primaryBlue;
+  const textColor = isOutline || isGhost ? Colors.primary : Colors.white;
 
   return (
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled || loading}
-      activeOpacity={0.85}
+      activeOpacity={0.8}
       style={[
-        styles.button,
-        { backgroundColor, borderColor },
+        styles.base,
+        { backgroundColor },
+        isOutline && styles.outline,
+        fullWidth && styles.fullWidth,
         disabled && styles.disabled,
-        style,
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={textColor} size="small" />
+        <ActivityIndicator color={textColor} />
       ) : (
         <>
           {icon}
@@ -69,21 +64,27 @@ export default function CustomButton({
 }
 
 const styles = StyleSheet.create({
-  button: {
+  base: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 15,
-    paddingHorizontal: 24,
-    borderRadius: 14,
-    borderWidth: 2,
-    gap: 8,
+    gap: Spacing.sm,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: Radius.md,
+  },
+  fullWidth: {
+    width: '100%',
+  },
+  outline: {
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
+  },
+  disabled: {
+    opacity: 0.5,
   },
   text: {
     fontSize: 16,
-    fontWeight: '700',
-  },
-  disabled: {
-    opacity: 0.6,
+    fontWeight: Typography.bold,
   },
 });

@@ -1,30 +1,35 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { COLORS } from '../constants/colors';
-import { ChatMessage } from '../types';
+import { StyleSheet, Text, View } from 'react-native';
+import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { ChatMessage } from '@/types';
 
-interface ChatBubbleProps {
+// ChatBubble renders a single message in the assistant chat.
+// User messages align right (blue); assistant messages align left (light).
+
+type Props = {
   message: ChatMessage;
-}
+};
 
-export default function ChatBubble({ message }: ChatBubbleProps) {
+export function ChatBubble({ message }: Props) {
   const isUser = message.sender === 'user';
 
   return (
-    <View style={[styles.row, isUser && styles.rowUser]}>
-      {!isUser && (
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>🤖</Text>
-        </View>
-      )}
+    <View
+      style={[
+        styles.row,
+        isUser ? styles.rowUser : styles.rowAssistant,
+      ]}
+    >
       <View
         style={[
           styles.bubble,
-          isUser ? styles.userBubble : styles.botBubble,
+          isUser ? styles.bubbleUser : styles.bubbleAssistant,
         ]}
       >
         <Text
-          style={[styles.text, isUser ? styles.userText : styles.botText]}
+          style={[
+            styles.text,
+            isUser ? styles.textUser : styles.textAssistant,
+          ]}
         >
           {message.text}
         </Text>
@@ -36,47 +41,37 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    marginBottom: 12,
-    marginHorizontal: 16,
+    marginVertical: Spacing.xs,
   },
   rowUser: {
     justifyContent: 'flex-end',
   },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: COLORS.primaryBlue,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  avatarText: {
-    fontSize: 16,
+  rowAssistant: {
+    justifyContent: 'flex-start',
   },
   bubble: {
-    maxWidth: '78%',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 18,
+    maxWidth: '80%',
+    paddingVertical: Spacing.sm + 2,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radius.lg,
   },
-  userBubble: {
-    backgroundColor: COLORS.primaryBlue,
-    borderBottomRightRadius: 4,
+  bubbleUser: {
+    backgroundColor: Colors.primary,
+    borderBottomRightRadius: Radius.sm,
   },
-  botBubble: {
-    backgroundColor: COLORS.chatBubbleBot,
-    borderBottomLeftRadius: 4,
+  bubbleAssistant: {
+    backgroundColor: Colors.surface,
+    borderBottomLeftRadius: Radius.sm,
   },
   text: {
     fontSize: 15,
-    lineHeight: 22,
+    lineHeight: 21,
   },
-  userText: {
-    color: COLORS.white,
+  textUser: {
+    color: Colors.white,
+    fontWeight: Typography.medium,
   },
-  botText: {
-    color: COLORS.text,
+  textAssistant: {
+    color: Colors.text,
   },
 });

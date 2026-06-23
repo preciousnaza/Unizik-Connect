@@ -1,139 +1,137 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { COLORS } from '../constants/colors';
-import { Appointment } from '../types';
+import { StyleSheet, Text, View } from 'react-native';
+import { Colors, Radius, Spacing, Typography, CardShadow } from '@/constants/theme';
+import { Appointment } from '@/types';
+import { Calendar, Clock, FileText, Hash } from 'lucide-react-native';
 
-interface AppointmentCardProps {
+// AppointmentCard displays a single appointment in the Appointments list.
+
+type Props = {
   appointment: Appointment;
-}
+};
 
-export default function AppointmentCard({ appointment }: AppointmentCardProps) {
-  const statusColor =
-    appointment.status === 'Confirmed'
-      ? COLORS.statusOpen
-      : appointment.status === 'Pending'
-      ? COLORS.statusBusy
-      : COLORS.statusClosed;
-
+export function AppointmentCard({ appointment }: Props) {
   return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
-        <View style={styles.idWrap}>
-          <Text style={styles.idLabel}>APPOINTMENT ID</Text>
-          <Text style={styles.idValue}>{appointment.id}</Text>
+        <View style={styles.officeIcon}>
+          <FileText size={20} color={Colors.primary} strokeWidth={2} />
         </View>
-        <View style={[styles.statusChip, { backgroundColor: `${statusColor}1A` }]}>
-          <Text style={[styles.statusText, { color: statusColor }]}>
-            {appointment.status}
+        <Text style={styles.officeName} numberOfLines={1}>
+          {appointment.officeName}
+        </Text>
+        <View style={styles.statusBadge}>
+          <Text style={styles.statusText}>
+            {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
           </Text>
         </View>
       </View>
 
-      <View style={styles.divider} />
+      <View style={styles.idRow}>
+        <Hash size={14} color={Colors.textMuted} strokeWidth={2} />
+        <Text style={styles.idText}>{appointment.id}</Text>
+      </View>
 
       <View style={styles.detailRow}>
-        <BuildingIcon />
-        <Text style={styles.detailLabel}>Office</Text>
-        <Text style={styles.detailValue}>{appointment.officeName}</Text>
+        <View style={styles.detailItem}>
+          <Calendar size={16} color={Colors.textMuted} strokeWidth={2} />
+          <Text style={styles.detailText}>{appointment.date}</Text>
+        </View>
+        <View style={styles.detailItem}>
+          <Clock size={16} color={Colors.textMuted} strokeWidth={2} />
+          <Text style={styles.detailText}>{appointment.time}</Text>
+        </View>
       </View>
-      <View style={styles.detailRow}>
-        <CalendarIcon />
-        <Text style={styles.detailLabel}>Date</Text>
-        <Text style={styles.detailValue}>{appointment.date}</Text>
-      </View>
-      <View style={styles.detailRow}>
-        <ClockIcon />
-        <Text style={styles.detailLabel}>Time</Text>
-        <Text style={styles.detailValue}>{appointment.timeSlot}</Text>
+
+      <View style={styles.reasonBox}>
+        <Text style={styles.reasonLabel}>Reason</Text>
+        <Text style={styles.reasonText} numberOfLines={2}>
+          {appointment.reason}
+        </Text>
       </View>
     </View>
   );
 }
 
-const BuildingIcon = () => (
-  <View style={styles.iconWrap}>
-    <Text>🏢</Text>
-  </View>
-);
-const CalendarIcon = () => (
-  <View style={styles.iconWrap}>
-    <Text>📅</Text>
-  </View>
-);
-const ClockIcon = () => (
-  <View style={styles.iconWrap}>
-    <Text>⏰</Text>
-  </View>
-);
-
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: COLORS.white,
-    borderRadius: 18,
-    padding: 18,
-    marginHorizontal: 4,
-    shadowColor: COLORS.cardShadow,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    elevation: 4,
+    backgroundColor: Colors.white,
+    borderRadius: Radius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    ...CardShadow,
   },
   headerRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.sm,
   },
-  idWrap: {
+  officeIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  officeName: {
     flex: 1,
+    fontSize: 16,
+    fontWeight: Typography.bold,
+    color: Colors.text,
   },
-  idLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.textLight,
-    letterSpacing: 1,
-    marginBottom: 4,
-  },
-  idValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.primaryBlue,
-  },
-  statusChip: {
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 16,
+  statusBadge: {
+    backgroundColor: Colors.openTint,
+    paddingVertical: 4,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: Radius.pill,
   },
   statusText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: Typography.bold,
+    color: Colors.open,
   },
-  divider: {
-    height: 1,
-    backgroundColor: COLORS.border,
-    marginVertical: 14,
+  idRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: Spacing.sm,
+  },
+  idText: {
+    fontSize: 13,
+    fontWeight: Typography.medium,
+    color: Colors.textMuted,
   },
   detailRow: {
     flexDirection: 'row',
+    gap: Spacing.lg,
+    marginBottom: Spacing.sm,
+  },
+  detailItem: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    gap: Spacing.xs,
   },
-  iconWrap: {
-    width: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
+  detailText: {
     fontSize: 14,
+    color: Colors.text,
+    fontWeight: Typography.medium,
   },
-  detailLabel: {
-    fontSize: 13,
-    color: COLORS.textLight,
-    fontWeight: '500',
-    width: 70,
-    marginLeft: 6,
+  reasonBox: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.md,
+    padding: Spacing.md,
   },
-  detailValue: {
+  reasonLabel: {
+    fontSize: 11,
+    fontWeight: Typography.bold,
+    color: Colors.textMuted,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  reasonText: {
     fontSize: 14,
-    color: COLORS.text,
-    fontWeight: '600',
-    flex: 1,
+    color: Colors.text,
+    lineHeight: 20,
   },
 });

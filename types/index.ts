@@ -1,53 +1,58 @@
-export type OfficeStatus = 'Open' | 'Busy' | 'Closed';
+// Core domain types used across the app.
+// Keeping these in one place makes the data shapes easy to discover.
 
+export type OfficeStatus = 'open' | 'busy' | 'closed';
+
+export type AppointmentStatus = 'confirmed' | 'pending' | 'cancelled';
+
+// A university office listed in the directory.
 export interface Office {
   id: string;
   name: string;
-  shortName: string;
-  status: OfficeStatus;
+  shortDescription: string;
   description: string;
-  hours: string;
   location: string;
+  openingHours: string;
   contact: string;
+  status: OfficeStatus;
   services: string[];
+  icon: string; // lucide icon name
 }
 
+// An appointment a student requests with an office.
 export interface Appointment {
-  id: string;
+  id: string; // e.g. UNI-001
+  fullName: string;
+  email: string;
   officeName: string;
-  date: string;
-  timeSlot: string;
-  studentMatricNumber: string;
-  status: 'Confirmed' | 'Pending' | 'Cancelled';
+  date: string; // ISO-ish display string
+  time: string; // e.g. "10:00 AM"
+  reason: string;
+  status: AppointmentStatus;
+  createdAt: string;
 }
 
+// A single message in the assistant chat.
 export interface ChatMessage {
   id: string;
+  sender: 'user' | 'assistant';
   text: string;
-  sender: 'user' | 'bot';
-  timestamp: Date;
+  timestamp: string;
 }
 
-export interface Student {
+// Mock student profile shown on the Profile tab.
+export interface StudentProfile {
   name: string;
   matricNumber: string;
   faculty: string;
   department: string;
   email: string;
   level: string;
-  initials: string;
+  avatar: string;
 }
 
-export type RootStackParamList = {
-  Splash: undefined;
-  MainApp: undefined;
-  OfficeDetails: { officeId: string };
-  AppointmentBooking: { officeId?: string };
-  Assistant: undefined;
-};
-export type OfficesStackParamList = {
-  OfficeDirectory: undefined;
-  OfficeDetails: { officeId: string };
-  AppointmentBooking: { officeId?: string };
-  Assistant: undefined;
-};
+// A keyword-matching rule for the assistant.
+export interface ChatRule {
+  keywords: string[];
+  response: string;
+}
