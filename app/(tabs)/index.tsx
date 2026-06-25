@@ -40,7 +40,7 @@ export default function HomeScreen() {
                 <Bell size={20} color={Colors.white} strokeWidth={2} />
                 <View style={styles.bellDot} />
               </TouchableOpacity>
-              <UnizikLogo size="small" width={40} />
+              <UnizikLogo size="small" width={60}/>
             </View>
           </View>
           <Text style={styles.headerSubtitle}>Connecting Students to Campus Services</Text>

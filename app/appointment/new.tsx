@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState } from 'react';
 import {
   StyleSheet,
@@ -6,16 +7,29 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Modal,
+  Pressable,
   Platform,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors, Radius, Spacing, Typography, CardShadow } from '@/constants/theme';
+import {
+  Colors,
+  Radius,
+  Spacing,
+  Typography,
+  CardShadow,
+} from '@/constants/theme';
 import { offices, timeSlots } from '@/data/mockData';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAppointments } from '@/hooks/useAppointments';
 import { CustomButton } from '@/components/CustomButton';
-import { ChevronLeft, CheckCircle2, Calendar, Clock, X } from 'lucide-react-native';
+import {
+  ChevronLeft,
+  CheckCircle2,
+  Calendar,
+  Clock,
+  X,
+} from 'lucide-react-native';
 
 // Appointment request form — presented as a modal.
 // Collects student info, office, date, time, and reason, then shows a
@@ -23,8 +37,11 @@ import { ChevronLeft, CheckCircle2, Calendar, Clock, X } from 'lucide-react-nati
 
 export default function NewAppointmentScreen() {
   // If navigated from an office detail page, the office name is pre-filled.
-  const { office: preselectedOffice } = useLocalSearchParams<{ office?: string }>();
+  const { office: preselectedOffice } = useLocalSearchParams<{
+    office?: string;
+  }>();
   const { user, loading } = useAuth();
+  const { addAppointment } = useAppointments();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -41,19 +58,53 @@ export default function NewAppointmentScreen() {
   // Only offices that are not closed can be booked.
   const bookableOffices = offices.filter((o) => o.status !== 'closed');
 
+  // Populate from session user when available
+  React.useEffect(() => {
+    if (user) {
+      setFullName(user.name || '');
+      setEmail(user.email || '');
+    }
+  }, [user]);
+
+  const resetForm = () => {
+    setOfficeName(preselectedOffice || '');
+    setDate('');
+    setTime('');
+    setReason('');
+    setConfirmationId('');
+    setError('');
+    if (user) {
+      setFullName(user.name || '');
+      setEmail(user.email || '');
+    }
+  };
+
   const handleSubmit = () => {
     // Basic validation — all fields are required.
-    if (!fullName.trim() || !email.trim() || !officeName || !date.trim() || !time || !reason.trim()) {
+    if (
+      !fullName.trim() ||
+      !email.trim() ||
+      !officeName ||
+      !date.trim() ||
+      !time ||
+      !reason.trim()
+    ) {
       setError('Please fill in all fields before submitting.');
       return;
     }
 
     setError('');
 
-    // Generate a confirmation ID (mock — no backend).
-    const randomNum = Math.floor(Math.random() * 900) + 100;
-    const newId = `UNI-${randomNum}`;
-    setConfirmationId(newId);
+    const appointment = addAppointment({
+      fullName: fullName.trim(),
+      email: email.trim(),
+      officeName,
+      date: date.trim(),
+      time,
+      reason: reason.trim(),
+    });
+
+    setConfirmationId(appointment.id);
     setShowSuccess(true);
   };
 
@@ -63,17 +114,11 @@ export default function NewAppointmentScreen() {
     return null;
   }
 
-  // Populate from session user when available
-  React.useEffect(() => {
-    if (user) {
-      setFullName(user.name || '');
-      setEmail(user.email || '');
-    }
-  }, [user]);
-
   const handleDone = () => {
+    console.log('Success modal closed');
     setShowSuccess(false);
-    // Go back to the appointments tab so the student sees their list.
+    resetForm();
+    console.log('Navigating to Appointments');
     router.replace('/(tabs)/appointments');
   };
 
@@ -88,18 +133,21 @@ export default function NewAppointmentScreen() {
         <View style={styles.closeBtnPlaceholder} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Student (auto-filled) */}
         <View style={styles.field}>
           <Text style={styles.label}>Student</Text>
-          <View style={[styles.input, { justifyContent: 'center' }]}> 
+          <View style={[styles.input, { justifyContent: 'center' }]}>
             <Text style={{ color: Colors.text }}>{fullName}</Text>
           </View>
         </View>
 
         <View style={styles.field}>
           <Text style={styles.label}>Email</Text>
-          <View style={[styles.input, { justifyContent: 'center' }]}> 
+          <View style={[styles.input, { justifyContent: 'center' }]}>
             <Text style={{ color: Colors.text }}>{email}</Text>
           </View>
         </View>
@@ -126,6 +174,8 @@ export default function NewAppointmentScreen() {
               style={{ transform: [{ rotate: '-90deg' }] }}
             />
           </TouchableOpacity>
+
+        
         </View>
 
         {/* Date */}
@@ -147,12 +197,7 @@ export default function NewAppointmentScreen() {
             style={styles.selectInput}
             onPress={() => setShowTimePicker(true)}
           >
-            <Text
-              style={[
-                styles.selectText,
-                !time && styles.placeholder,
-              ]}
-            >
+            <Text style={[styles.selectText, !time && styles.placeholder]}>
               {time || 'Select a time slot'}
             </Text>
             <Clock size={18} color={Colors.textMuted} strokeWidth={2} />
@@ -182,7 +227,7 @@ export default function NewAppointmentScreen() {
       </ScrollView>
 
       {/* Office picker modal */}
-      <Modal visible={showOfficePicker} animationType="slide" transparent>
+      {/* <Modal visible={showOfficePicker} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.pickerSheet}>
             <View style={styles.pickerHeader}>
@@ -191,13 +236,61 @@ export default function NewAppointmentScreen() {
                 <X size={22} color={Colors.text} strokeWidth={2} />
               </TouchableOpacity>
             </View>
-            <ScrollView style={styles.pickerList}>
+            <ScrollView
+              style={styles.pickerList}
+              keyboardShouldPersistTaps="handled"
+            >
               {bookableOffices.map((office) => (
                 <TouchableOpacity
                   key={office.id}
                   style={[
                     styles.pickerItem,
                     officeName === office.name && styles.pickerItemSelected,
+                  ]}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setOfficeName(office.name);
+                    setShowOfficePicker(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.pickerItemText,
+                      officeName === office.name &&
+                        styles.pickerItemTextSelected,
+                    ]}
+                  >
+                    {office.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal> */}
+
+            {/* Office picker overlay */}
+      {showOfficePicker && (
+        <View style={[StyleSheet.absoluteFillObject, styles.modalOverlay]}>
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => setShowOfficePicker(false)}
+          />
+          <View style={styles.pickerSheet}>
+            <View style={styles.pickerHeader}>
+              <Text style={styles.pickerTitle}>Select Office</Text>
+              <TouchableOpacity onPress={() => setShowOfficePicker(false)}>
+                <X size={22} color={Colors.text} strokeWidth={2} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.pickerList} keyboardShouldPersistTaps="always">
+              {bookableOffices.map((office) => (
+                <Pressable
+                  key={office.id}
+                  style={({ pressed }) => [
+                    styles.pickerItem,
+                    officeName === office.name && styles.pickerItemSelected,
+                    pressed && { opacity: 0.7 },
                   ]}
                   onPress={() => {
                     setOfficeName(office.name);
@@ -212,15 +305,15 @@ export default function NewAppointmentScreen() {
                   >
                     {office.name}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               ))}
             </ScrollView>
           </View>
         </View>
-      </Modal>
+      )}
 
       {/* Time slot picker modal */}
-      <Modal visible={showTimePicker} animationType="slide" transparent>
+      {/* <Modal visible={showTimePicker} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.pickerSheet}>
             <View style={styles.pickerHeader}>
@@ -237,6 +330,7 @@ export default function NewAppointmentScreen() {
                     styles.timeChip,
                     time === slot && styles.timeChipSelected,
                   ]}
+                  activeOpacity={0.7}
                   onPress={() => {
                     setTime(slot);
                     setShowTimePicker(false);
@@ -255,11 +349,54 @@ export default function NewAppointmentScreen() {
             </View>
           </View>
         </View>
-      </Modal>
+      </Modal> */}
 
-      {/* Success modal */}
-      <Modal visible={showSuccess} animationType="fade" transparent>
-        <View style={styles.modalOverlay}>
+            {/* Time slot picker overlay */}
+      {showTimePicker && (
+        <View style={[StyleSheet.absoluteFillObject, styles.modalOverlay]}>
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => setShowTimePicker(false)}
+          />
+          <View style={styles.pickerSheet}>
+            <View style={styles.pickerHeader}>
+              <Text style={styles.pickerTitle}>Select Time Slot</Text>
+              <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                <X size={22} color={Colors.text} strokeWidth={2} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.timeGrid}>
+              {timeSlots.map((slot) => (
+                <Pressable
+                  key={slot}
+                  style={({ pressed }) => [
+                    styles.timeChip,
+                    time === slot && styles.timeChipSelected,
+                    pressed && { opacity: 0.7 },
+                  ]}
+                  onPress={() => {
+                    setTime(slot);
+                    setShowTimePicker(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.timeChipText,
+                      time === slot && styles.timeChipTextSelected,
+                    ]}
+                  >
+                    {slot}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* Success overlay */}
+      {showSuccess && (
+        <View style={[StyleSheet.absoluteFillObject, styles.successOverlay]}>
           <View style={styles.successCard}>
             <View style={styles.successIcon}>
               <CheckCircle2 size={56} color={Colors.open} strokeWidth={2} />
@@ -287,7 +424,7 @@ export default function NewAppointmentScreen() {
             </View>
           </View>
         </View>
-      </Modal>
+      )}
     </SafeAreaView>
   );
 }
@@ -381,6 +518,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
+  },
+  successOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 100,
   },
   pickerSheet: {
     backgroundColor: Colors.white,

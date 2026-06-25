@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { AppointmentsProvider } from '@/hooks/useAppointments';
 
 // Root layout: the app starts on the splash screen, which then replaces
 // itself with the tab layout. Office details and the appointment form are
@@ -13,7 +14,7 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <>
+      <AppointmentsProvider>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="splash" />
           <Stack.Screen name="(tabs)" />
@@ -22,7 +23,7 @@ export default function RootLayout() {
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="light" />
-      </>
+      </AppointmentsProvider>
     </AuthProvider>
   );
 }

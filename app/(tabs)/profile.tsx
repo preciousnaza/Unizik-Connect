@@ -6,7 +6,6 @@ import { Colors, Radius, Spacing, Typography, CardShadow } from '@/constants/the
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppointments } from '@/hooks/useAppointments';
 import { Avatar } from '@/components/Avatar';
-import UnizikLogo from '@/components/UnizikLogo';
 import { InfoCard } from '@/components/InfoCard';
 import {
   Calendar,
@@ -36,9 +35,6 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={{ alignItems: 'center', marginTop: Spacing.lg }}>
-          <UnizikLogo size="medium" width={96} />
-        </View>
 
         {/* Header card with avatar and student info */}
         <View style={styles.headerCard}>
@@ -54,10 +50,10 @@ export default function ProfileScreen() {
         {/* Stats row */}
         <View style={styles.statsRow}>
           <InfoCard
-            icon={<Calendar size={20} color={Colors.white} strokeWidth={2} />}
+            icon={<Calendar size={20} color={Colors.primary} strokeWidth={2} />}
             title="Appointments"
             value={String(appointments.length)}
-            accent
+            
           />
           <View style={{ width: Spacing.md }} />
           <InfoCard

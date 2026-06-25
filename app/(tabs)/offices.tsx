@@ -111,6 +111,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
   },
   header: {
+    backgroundColor: '#003B8E',
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.lg,
     paddingBottom: Spacing.sm,
@@ -118,11 +119,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: Typography.bold,
-    color: Colors.text,
+    color: '#FFFFFF',
   },
   subtitle: {
     fontSize: 14,
-    color: Colors.textMuted,
+    color: 'rgba(255,255,255,0.75)',
     marginTop: 4,
   },
   headerLogo: {

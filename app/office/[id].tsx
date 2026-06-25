@@ -123,7 +123,7 @@ export default function OfficeDetailsScreen() {
         {!isClosed && (
           <CustomButton
             title="Book Appointment"
-            onPress={() => router.push({ pathname: '/appointment/new', params: { office: office.name } })}
+            onPress={() => router.push(`/appointment/new?office=${encodeURIComponent(office.name)}`)}
             icon={<CalendarPlus size={20} color={Colors.white} strokeWidth={2} />}
           />
         )}
@@ -175,6 +175,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
+    backgroundColor: '#003B8E',
   },
   backBtn: {
     width: 40,

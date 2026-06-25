@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Image, ImageStyle, View, StyleSheet } from 'react-native';
 import { Colors } from '@/constants/theme';
 
@@ -11,39 +11,24 @@ type Props = {
   width?: number;
 };
 
-// Map named sizes to widths (in px). These keep the logo modest and balanced.
+// Map named sizes to widths (in px). Increased so the logo is more visible.
 const SIZE_MAP: Record<Size, number> = {
-  small: 32,
-  medium: 88,
-  large: 160,
+  small: 64,
+  medium: 140,
+  large: 260,
 };
 
 // `UnizikLogo` renders the official UNIZIK logo from the bundled assets.
-// It prefers `assets/images/unizik-logo.png` (asset uri) and falls back to the
-// app icon if the logo asset isn't available at runtime.
+// Loads `assets/images/unizik-logo.jpg` using require().
 export function UnizikLogo({ size = 'medium', style, width }: Props) {
-  const [fallback, setFallback] = useState(false);
   const w = width ?? SIZE_MAP[size];
-
-  // Use the asset URI so bundlers don't error if the image file is not present.
-  // Expo/React Native understands the `asset:/` scheme for bundled assets.
-  const primarySource = { uri: 'asset:/assets/images/unizik-logo.png' };
 
   return (
     <View style={[styles.wrap, { width: w }]}> 
-      {!fallback ? (
-        <Image
-          source={primarySource}
-          style={[{ width: w, height: w * 0.36, resizeMode: 'contain' }, style]}
-          onError={() => setFallback(true)}
-        />
-      ) : (
-        <Image
-          // fallback to packaged icon
-          source={require('@/assets/images/icon.png')}
-          style={[{ width: w, height: w * 0.36, resizeMode: 'contain' }, style]}
-        />
-      )}
+      <Image
+        source={require('../assets/images/unizik-logo.jpg')}
+        style={[{ width: w, height: w * 0.6, resizeMode: 'contain' }, style]}
+      />
     </View>
   );
 }
