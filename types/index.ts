@@ -3,7 +3,7 @@
 
 export type OfficeStatus = 'open' | 'busy' | 'closed';
 
-export type AppointmentStatus = 'confirmed' | 'pending' | 'cancelled';
+export type AppointmentStatus = 'confirmed' | 'pending';
 
 // A university office listed in the directory.
 export interface Office {

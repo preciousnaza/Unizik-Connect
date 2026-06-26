@@ -5,7 +5,6 @@ import React, {
   useContext,
 } from 'react';
 import { Appointment } from '@/types';
-import { sampleAppointment } from '@/data/mockData';
 
 // Shared appointments state via context so the booking form and
 // Appointments tab read/write the same list.
@@ -27,6 +26,7 @@ type AppointmentsContextValue = {
   addAppointment: (
     data: Omit<Appointment, 'id' | 'status' | 'createdAt'>,
   ) => Appointment;
+  cancelAppointment: (id: string) => void;
 };
 
 const AppointmentsContext = createContext<AppointmentsContextValue | undefined>(
@@ -38,15 +38,7 @@ export function AppointmentsProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [appointments, setAppointments] = useState<Appointment[]>([
-    {
-      ...sampleAppointment,
-      fullName: 'Chukwuemeka Okafor',
-      email: 'emeka.okafor@student.unizik.edu.ng',
-      reason: 'ID Card Replacement',
-      createdAt: new Date().toISOString(),
-    },
-  ]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
 
   const addAppointment = useCallback(
     (data: Omit<Appointment, 'id' | 'status' | 'createdAt'>) => {
@@ -59,8 +51,7 @@ export function AppointmentsProvider({
           status: 'confirmed',
           createdAt: new Date().toISOString(),
         };
-        console.log('Appointment created:', created);
-        console.log('Appointment saved');
+        console.log('Appointment booked:', created);
         return [created, ...prev];
       });
 
@@ -69,8 +60,15 @@ export function AppointmentsProvider({
     [],
   );
 
+  const cancelAppointment = useCallback((id: string) => {
+    setAppointments((prev) => prev.filter((appt) => appt.id !== id));
+    console.log('Appointment removed:', id);
+  }, []);
+
   return (
-    <AppointmentsContext.Provider value={{ appointments, addAppointment }}>
+    <AppointmentsContext.Provider
+      value={{ appointments, addAppointment, cancelAppointment }}
+    >
       {children}
     </AppointmentsContext.Provider>
   );

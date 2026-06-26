@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Pressable,
   Platform,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -35,6 +36,27 @@ import {
 // Collects student info, office, date, time, and reason, then shows a
 // success modal with the generated appointment ID.
 
+function getTodayStart(): Date {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
+}
+
+function normalizeDate(date: Date): Date {
+  const normalized = new Date(date);
+  normalized.setHours(0, 0, 0, 0);
+  return normalized;
+}
+
+function formatDisplayDate(date: Date): string {
+  return date.toLocaleDateString('en-GB', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
 export default function NewAppointmentScreen() {
   // If navigated from an office detail page, the office name is pre-filled.
   const { office: preselectedOffice } = useLocalSearchParams<{
@@ -46,7 +68,8 @@ export default function NewAppointmentScreen() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [officeName, setOfficeName] = useState(preselectedOffice || '');
-  const [date, setDate] = useState('');
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedDateValue, setSelectedDateValue] = useState<Date | null>(null);
   const [time, setTime] = useState('');
   const [reason, setReason] = useState('');
   const [showOfficePicker, setShowOfficePicker] = useState(false);
@@ -57,6 +80,17 @@ export default function NewAppointmentScreen() {
 
   // Only offices that are not closed can be booked.
   const bookableOffices = offices.filter((o) => o.status !== 'closed');
+  const upcomingDates = React.useMemo(() => {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() + 1);
+    startDate.setHours(0, 0, 0, 0);
+
+    return Array.from({ length: 30 }, (_, index) => {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + index);
+      return date;
+    });
+  }, []);
 
   // Populate from session user when available
   React.useEffect(() => {
@@ -68,7 +102,8 @@ export default function NewAppointmentScreen() {
 
   const resetForm = () => {
     setOfficeName(preselectedOffice || '');
-    setDate('');
+    setSelectedDate(null);
+    setSelectedDateValue(null);
     setTime('');
     setReason('');
     setConfirmationId('');
@@ -79,27 +114,48 @@ export default function NewAppointmentScreen() {
     }
   };
 
+  const showRequiredFieldsAlert = () => {
+    const message = 'Please complete all required fields.';
+    setError(message);
+    if (Platform.OS === 'web') {
+      window.alert(message);
+    } else {
+      Alert.alert('', message);
+    }
+  };
+
+  const showDateRequiredAlert = () => {
+    const message = 'Please select an appointment date.';
+    setError(message);
+    if (Platform.OS === 'web') {
+      window.alert(message);
+    } else {
+      Alert.alert('', message);
+    }
+  };
+
   const handleSubmit = () => {
-    // Basic validation — all fields are required.
-    if (
-      !fullName.trim() ||
-      !email.trim() ||
-      !officeName ||
-      !date.trim() ||
-      !time ||
-      !reason.trim()
-    ) {
-      setError('Please fill in all fields before submitting.');
+    const today = getTodayStart();
+
+    if (!selectedDateValue || selectedDateValue < today) {
+      showDateRequiredAlert();
+      return;
+    }
+
+    if (!officeName || !time || !reason.trim()) {
+      showRequiredFieldsAlert();
       return;
     }
 
     setError('');
 
+    const formattedDate = selectedDate || '';
+
     const appointment = addAppointment({
       fullName: fullName.trim(),
       email: email.trim(),
       officeName,
-      date: date.trim(),
+      date: formattedDate,
       time,
       reason: reason.trim(),
     });
@@ -178,16 +234,67 @@ export default function NewAppointmentScreen() {
         
         </View>
 
-        {/* Date */}
+        {/* Date picker */}
         <View style={styles.field}>
           <Text style={styles.label}>Date</Text>
-          <TextInput
-            style={styles.input}
-            value={date}
-            onChangeText={setDate}
-            placeholder="YYYY-MM-DD"
-            placeholderTextColor={Colors.textMuted}
-          />
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.datePickerRow}
+          >
+            {upcomingDates.map((date) => {
+              const isWeekendDate = date.getDay() === 0 || date.getDay() === 6;
+              const isSelected =
+                !!selectedDateValue &&
+                selectedDateValue.getTime() === normalizeDate(date).getTime();
+
+              return (
+                <TouchableOpacity
+                  key={date.toISOString()}
+                  style={[
+                    styles.dateCard,
+                    isSelected && styles.dateCardSelected,
+                    isWeekendDate && styles.dateCardDisabled,
+                  ]}
+                  onPress={() => {
+                    if (isWeekendDate) return;
+                    setSelectedDate(formatDisplayDate(date));
+                    setSelectedDateValue(normalizeDate(date));
+                  }}
+                  disabled={isWeekendDate}
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    style={[
+                      styles.dateCardDay,
+                      isSelected && styles.dateCardTextSelected,
+                      isWeekendDate && styles.dateCardTextDisabled,
+                    ]}
+                  >
+                    {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.dateCardNumber,
+                      isSelected && styles.dateCardTextSelected,
+                      isWeekendDate && styles.dateCardTextDisabled,
+                    ]}
+                  >
+                    {date.getDate()}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.dateCardMonth,
+                      isSelected && styles.dateCardTextSelected,
+                      isWeekendDate && styles.dateCardTextDisabled,
+                    ]}
+                  >
+                    {date.toLocaleDateString('en-US', { month: 'short' })}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
         </View>
 
         {/* Time picker */}
@@ -412,7 +519,9 @@ export default function NewAppointmentScreen() {
             <View style={styles.successDetails}>
               <View style={styles.successDetailRow}>
                 <Calendar size={16} color={Colors.textMuted} strokeWidth={2} />
-                <Text style={styles.successDetailText}>{date}</Text>
+                <Text style={styles.successDetailText}>
+                  {selectedDate || ''}
+                </Text>
               </View>
               <View style={styles.successDetailRow}>
                 <Clock size={16} color={Colors.textMuted} strokeWidth={2} />
@@ -500,6 +609,52 @@ const styles = StyleSheet.create({
   selectText: {
     fontSize: 15,
     color: Colors.text,
+  },
+  datePickerRow: {
+    paddingVertical: Spacing.sm,
+    paddingRight: Spacing.sm,
+  },
+  dateCard: {
+    width: 76,
+    height: 96,
+    backgroundColor: Colors.white,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
+  },
+  dateCardSelected: {
+    backgroundColor: '#003B8E',
+    borderColor: '#003B8E',
+  },
+  dateCardDisabled: {
+    backgroundColor: '#E5E7EB',
+    borderColor: '#E5E7EB',
+  },
+  dateCardDay: {
+    fontSize: 13,
+    fontWeight: Typography.bold,
+    color: Colors.text,
+    marginBottom: 6,
+  },
+  dateCardNumber: {
+    fontSize: 24,
+    fontWeight: Typography.bold,
+    color: Colors.text,
+    marginBottom: 6,
+  },
+  dateCardMonth: {
+    fontSize: 13,
+    color: Colors.textMuted,
+  },
+  dateCardTextSelected: {
+    color: Colors.white,
+  },
+  dateCardTextDisabled: {
+    color: '#9CA3AF',
   },
   placeholder: {
     color: Colors.textMuted,

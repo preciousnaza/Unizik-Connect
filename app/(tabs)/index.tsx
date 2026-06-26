@@ -2,8 +2,9 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-nati
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Radius, Spacing, Typography, CardShadow } from '@/constants/theme';
-import { offices, sampleAppointment } from '@/data/mockData';
+import { offices } from '@/data/mockData';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAppointments } from '@/hooks/useAppointments';
 import { SectionHeader } from '@/components/SectionHeader';
 import { StatusBadge } from '@/components/StatusBadge';
 import UnizikLogo from '@/components/UnizikLogo';
@@ -14,6 +15,8 @@ import { Building2, CalendarPlus, MessageCircle, User, Calendar, Clock, ChevronR
 
 export default function HomeScreen() {
   const { user } = useAuth();
+  const { appointments } = useAppointments();
+  const upcomingAppointment = appointments.find((a) => a.status === 'confirmed');
   // Quick actions navigate to other tabs or the appointment form.
   const quickActions = [
     { label: 'Offices', icon: Building2, route: '/(tabs)/offices' as const },
@@ -86,38 +89,59 @@ export default function HomeScreen() {
         {/* Upcoming appointment card */}
         <View style={styles.section}>
           <SectionHeader title="Upcoming Appointment" />
-          <View style={styles.appointmentCard}>
-            <View style={styles.appointmentHeader}>
-              <View style={styles.appointmentIcon}>
-                <Calendar size={20} color={Colors.white} strokeWidth={2} />
+          {upcomingAppointment ? (
+            <View style={styles.appointmentCard}>
+              <View style={styles.appointmentHeader}>
+                <View style={styles.appointmentIcon}>
+                  <Calendar size={20} color={Colors.white} strokeWidth={2} />
+                </View>
+                <View style={styles.appointmentInfo}>
+                  <Text style={styles.appointmentOffice}>
+                    {upcomingAppointment.officeName}
+                  </Text>
+                  <Text style={styles.appointmentId}>{upcomingAppointment.id}</Text>
+                </View>
+                <View style={styles.confirmedBadge}>
+                  <Text style={styles.confirmedText}>Confirmed</Text>
+                </View>
               </View>
-              <View style={styles.appointmentInfo}>
-                <Text style={styles.appointmentOffice}>{sampleAppointment.officeName}</Text>
-                <Text style={styles.appointmentId}>{sampleAppointment.id}</Text>
+              <View style={styles.appointmentDetails}>
+                <View style={styles.appointmentDetail}>
+                  <Calendar size={16} color={Colors.textMuted} strokeWidth={2} />
+                  <Text style={styles.appointmentDetailText}>
+                    {upcomingAppointment.date}
+                  </Text>
+                </View>
+                <View style={styles.appointmentDetail}>
+                  <Clock size={16} color={Colors.textMuted} strokeWidth={2} />
+                  <Text style={styles.appointmentDetailText}>
+                    {upcomingAppointment.time}
+                  </Text>
+                </View>
               </View>
-              <View style={styles.confirmedBadge}>
-                <Text style={styles.confirmedText}>Confirmed</Text>
-              </View>
+              <Text style={styles.appointmentReason}>{upcomingAppointment.reason}</Text>
+              <TouchableOpacity
+                style={styles.viewAllBtn}
+                onPress={() => router.push('/(tabs)/appointments')}
+              >
+                <Text style={styles.viewAllText}>View all appointments</Text>
+                <ChevronRight size={16} color={Colors.primary} strokeWidth={2} />
+              </TouchableOpacity>
             </View>
-            <View style={styles.appointmentDetails}>
-              <View style={styles.appointmentDetail}>
-                <Calendar size={16} color={Colors.textMuted} strokeWidth={2} />
-                <Text style={styles.appointmentDetailText}>{sampleAppointment.date}</Text>
-              </View>
-              <View style={styles.appointmentDetail}>
-                <Clock size={16} color={Colors.textMuted} strokeWidth={2} />
-                <Text style={styles.appointmentDetailText}>{sampleAppointment.time}</Text>
-              </View>
+          ) : (
+            <View style={styles.appointmentCard}>
+              <Text style={styles.noAppointmentText}>
+                You have not booked any appointments yet.
+              </Text>
+              <TouchableOpacity
+                style={styles.viewAllBtn}
+                onPress={() => router.push('/appointment/new')}
+              >
+                <Text style={styles.viewAllText}>Book Appointment</Text>
+                <ChevronRight size={16} color={Colors.primary} strokeWidth={2} />
+              </TouchableOpacity>
             </View>
-            <Text style={styles.appointmentReason}>{sampleAppointment.reason}</Text>
-            <TouchableOpacity
-              style={styles.viewAllBtn}
-              onPress={() => router.push('/(tabs)/appointments')}
-            >
-              <Text style={styles.viewAllText}>View all appointments</Text>
-              <ChevronRight size={16} color={Colors.primary} strokeWidth={2} />
-            </TouchableOpacity>
-          </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -298,6 +322,12 @@ const styles = StyleSheet.create({
   appointmentReason: {
     fontSize: 14,
     color: Colors.textMuted,
+    marginBottom: Spacing.md,
+  },
+  noAppointmentText: {
+    fontSize: 14,
+    color: Colors.textMuted,
+    textAlign: 'center',
     marginBottom: Spacing.md,
   },
   viewAllBtn: {

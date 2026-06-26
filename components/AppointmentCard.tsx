@@ -1,15 +1,37 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Colors, Radius, Spacing, Typography, CardShadow } from '@/constants/theme';
-import { Appointment } from '@/types';
+import { Appointment, AppointmentStatus } from '@/types';
 import { Calendar, Clock, FileText, Hash } from 'lucide-react-native';
 
 // AppointmentCard displays a single appointment in the Appointments list.
 
 type Props = {
   appointment: Appointment;
+  onCancelRequest: (id: string) => void;
 };
 
-export function AppointmentCard({ appointment }: Props) {
+function getStatusStyles(status: AppointmentStatus) {
+  switch (status) {
+    case 'confirmed':
+      return { badgeBg: Colors.openTint, badgeText: Colors.open };
+    case 'pending':
+      return { badgeBg: Colors.busyTint, badgeText: Colors.busy };
+  }
+}
+
+function formatStatusLabel(status: AppointmentStatus) {
+  return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
+export function AppointmentCard({ appointment, onCancelRequest }: Props) {
+  const statusStyles = getStatusStyles(appointment.status);
+  const isConfirmed = appointment.status === 'confirmed';
+
+  const handleCancelPress = () => {
+    console.log('Cancel button clicked:', appointment.id);
+    onCancelRequest(appointment.id);
+  };
+
   return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
@@ -19,9 +41,9 @@ export function AppointmentCard({ appointment }: Props) {
         <Text style={styles.officeName} numberOfLines={1}>
           {appointment.officeName}
         </Text>
-        <View style={styles.statusBadge}>
-          <Text style={styles.statusText}>
-            {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+        <View style={[styles.statusBadge, { backgroundColor: statusStyles.badgeBg }]}>
+          <Text style={[styles.statusText, { color: statusStyles.badgeText }]}>
+            Status: {formatStatusLabel(appointment.status)}
           </Text>
         </View>
       </View>
@@ -48,6 +70,16 @@ export function AppointmentCard({ appointment }: Props) {
           {appointment.reason}
         </Text>
       </View>
+
+      {isConfirmed ? (
+        <TouchableOpacity
+          style={styles.cancelBtn}
+          activeOpacity={0.8}
+          onPress={handleCancelPress}
+        >
+          <Text style={styles.cancelBtnText}>Cancel Appointment</Text>
+        </TouchableOpacity>
+      ) : null}
     </View>
   );
 }
@@ -81,7 +113,6 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   statusBadge: {
-    backgroundColor: Colors.openTint,
     paddingVertical: 4,
     paddingHorizontal: Spacing.sm,
     borderRadius: Radius.pill,
@@ -89,7 +120,6 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 11,
     fontWeight: Typography.bold,
-    color: Colors.open,
   },
   idRow: {
     flexDirection: 'row',
@@ -121,6 +151,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: Radius.md,
     padding: Spacing.md,
+    marginBottom: Spacing.sm,
   },
   reasonLabel: {
     fontSize: 11,
@@ -133,5 +164,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.text,
     lineHeight: 20,
+  },
+  cancelBtn: {
+    marginTop: Spacing.sm,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.md,
+    borderWidth: 1.5,
+    borderColor: Colors.closed,
+    alignItems: 'center',
+  },
+  cancelBtnText: {
+    fontSize: 14,
+    fontWeight: Typography.bold,
+    color: Colors.closed,
   },
 });
